@@ -5,39 +5,63 @@ Main application module
 
 import os
 import sys
+import threading
+import time
 from typing import Optional
 from core import config
+from core.jp_config import *
 from core.speech_engine import SpeechEngine
 from core.command_processor import CommandProcessor
+from core.jp_brain import JPBrain, SmartMonitoring
 
 class JPAssistant:
-    """Main application class for JP Voice Assistant"""
+    """Enhanced JP Voice Assistant"""
     
     def __init__(self):
-        """Initialize the assistant"""
+        """Initialize the enhanced assistant"""
         self.speech_engine: Optional[SpeechEngine] = None
         self.command_processor: Optional[CommandProcessor] = None
+        self.jp_brain: Optional[JPBrain] = None
+        self.monitoring: Optional[SmartMonitoring] = None
         self.running = False
-        self.awake = False  # Wake word state
+        self.awake = True  # Start awake
+        self.always_listening = ALWAYS_LISTENING
         
         # Initialize components
         self.initialize()
     
     def initialize(self) -> bool:
-        """Initialize all components"""
-        print(f"🚀 Initializing {config.APP_NAME} v{config.APP_VERSION}...")
+        """Initialize all enhanced components"""
+        print(f"🚀 Initializing Enhanced {ASSISTANT_NAME}...")
+        print("═" * 40)
         
         try:
             # Initialize speech engine
+            print("🎤 Loading speech systems...")
             self.speech_engine = SpeechEngine()
             if not self.speech_engine.is_ready():
                 print("❌ Speech engine initialization failed")
                 return False
+            print("✅ Speech systems online")
             
             # Initialize command processor
+            print("🧠 Loading command processor...")
             self.command_processor = CommandProcessor()
+            print("✅ Command processor ready")
             
-            print("✅ All systems ready!")
+            # Initialize JP brain
+            print("🔮 Loading JP intelligence...")
+            self.jp_brain = JPBrain()
+            print("✅ JP brain online")
+            
+            # Initialize smart monitoring
+            if ADVANCED_FEATURES["proactive_assistance"]:
+                print("👁️ Activating smart monitoring...")
+                self.monitoring = SmartMonitoring(self.jp_brain)
+                print("✅ Smart monitoring active")
+            
+            print("═" * 40)
+            print("🎯 All enhanced systems operational!")
             return True
             
         except Exception as e:
@@ -45,22 +69,24 @@ class JPAssistant:
             return False
     
     def display_welcome(self) -> None:
-        """Display welcome message and instructions"""
-        print("\n" + "="*60)
-        print(f"🎙️ {config.APP_NAME} v{config.APP_VERSION} - Enhanced Edition")
-        print("="*60)
-        print("💡 Controls:")
-        print("   • Say 'Hey JP' or 'JP' to wake up")
-        print("   • Say 'Bye JP' to go to sleep")
-        print("   • Press ENTER for manual mode")
-        print("   • Type 'quit' to exit")
-        print("\n🌟 Enhanced Features:")
-        print("   • System Information & Control")
-        print("   • File Operations & Search")
-        print("   • Web Search & Program Launching")
-        print("   • Memory Storage & Recall")
-        print("   • Entertainment & Conversations")
-        print("-"*60)
+        """Display enhanced welcome interface"""
+        print("\n" + "═"*65)
+        print(f"🤖 {ASSISTANT_NAME} - Enhanced AI Assistant")
+        print("═"*65)
+        print("🎯 Status: All enhanced systems operational")
+        print("🎤 Voice Control: Always listening mode active")
+        print("🧠 AI Mode: Smart intelligence online")
+        print("👁️ Monitoring: Smart assistance active")
+        print("")
+        print("💬 Enhanced Voice Commands:")
+        print("   🎙️ 'Hey JP' or 'JP' - Get attention")
+        print("   📊 'System scan' - Complete analysis")
+        print("   ⚡ 'Optimize system' - Smart optimization")
+        print("   🧠 'Smart assistance' - AI recommendations")
+        print("   📚 'Learn from me' - Adaptive learning")
+        print("   💡 'What should I do?' - Smart suggestions")
+        print("   😴 'Sleep' or 'Bye JP' - Standby mode")
+        print("─"*65)
     
     def display_commands(self) -> None:
         """Display available commands"""
@@ -75,39 +101,51 @@ class JPAssistant:
         print("   ❓ 'Help' | 'What can you do?'")
         print("-"*60)
     
-    def check_wake_word(self, text: str) -> bool:
-        """Check if text contains wake word"""
+    def check_jp_attention(self, text: str) -> bool:
+        """Check if user is addressing JP"""
         text = text.lower().strip()
         
         # Check for exact matches first
-        for wake_word in config.WAKE_WORDS:
+        for wake_word in WAKE_WORDS:
             if wake_word in text:
-                print(f"✅ Wake word detected: '{wake_word}' in '{text}'")
+                print(f"✅ JP attention detected: '{wake_word}' in '{text}'")
                 return True
         
-        # Check for partial matches (more flexible)
-        if "jp" in text or "hey" in text or "hello" in text:
-            print(f"✅ Partial wake word detected in: '{text}'")
-            return True
+        # Check for attention words
+        for attention_word in ATTENTION_WORDS:
+            if attention_word in text:
+                print(f"✅ Attention word detected: '{attention_word}' in '{text}'")
+                return True
             
-        print(f"❌ No wake word in: '{text}'")
         return False
     
     def check_sleep_word(self, text: str) -> bool:
         """Check if text contains sleep word"""
         text = text.lower().strip()
         
-        for sleep_word in config.SLEEP_WORDS:
+        for sleep_word in SLEEP_WORDS:
             if sleep_word in text:
                 print(f"✅ Sleep word detected: '{sleep_word}' in '{text}'")
                 return True
         
-        # Check for partial matches
-        if ("bye" in text and "jp" in text) or "sleep" in text or "stop listening" in text:
-            print(f"✅ Partial sleep word detected in: '{text}'")
-            return True
-            
         return False
+    
+    def process_jp_command(self, command: str) -> str:
+        """Process command with JP intelligence"""
+        # First try JP brain for enhanced commands
+        jp_response = self.jp_brain.process_enhanced_command(command)
+        
+        if jp_response:
+            return jp_response
+        
+        # Fall back to standard command processing
+        standard_response = self.command_processor.process_command(command)
+        
+        # Enhance with JP personality
+        return self.jp_brain.personality.personalize_response(
+            "acknowledgment",
+            standard_response
+        )
     
     def run(self) -> None:
         """Main application loop"""
@@ -115,15 +153,16 @@ class JPAssistant:
             print("❌ Cannot start - initialization failed")
             return
         
-        # Display welcome information
+        # Display enhanced interface
         self.display_welcome()
-        self.display_commands()
         
-        # Initial greeting
-        self.speech_engine.speak(
-            f"Hello! I'm {config.APP_NAME}, your enhanced voice assistant. "
-            "Say 'Hey JP' to wake me up, or press Enter for manual mode."
-        )
+        # Start smart monitoring if enabled
+        if self.monitoring and ADVANCED_FEATURES["proactive_assistance"]:
+            self.monitoring.start_monitoring()
+        
+        # Enhanced greeting
+        greeting = self.jp_brain.personality.personalize_response("greeting")
+        self.speech_engine.speak(greeting)
         
         self.running = True
         
@@ -146,15 +185,18 @@ class JPAssistant:
                         self.speech_engine.speak(response)
                         continue
                     
-                    # Listen for wake word
+                    # Listen for JP attention
                     wake_input = self.speech_engine.listen(wake_word_mode=True)
                     if wake_input:
-                        if self.check_wake_word(wake_input):
+                        if self.check_jp_attention(wake_input):
                             self.awake = True
-                            self.speech_engine.speak("Yes, I'm awake! How can I help you?")
+                            acknowledgment = self.jp_brain.personality.personalize_response(
+                                "acknowledgment", "Yes, I'm here! How can I help?"
+                            )
+                            self.speech_engine.speak(acknowledgment)
                             continue
                         else:
-                            # Continue listening for wake word
+                            # Continue listening for attention
                             continue
                     
                 else:
@@ -166,18 +208,21 @@ class JPAssistant:
                         # Check for sleep command
                         if self.check_sleep_word(command):
                             self.awake = False
-                            self.speech_engine.speak("Going to sleep. Say 'Hey JP' to wake me up!")
+                            sleep_msg = self.jp_brain.personality.personalize_response("standby")
+                            self.speech_engine.speak(sleep_msg)
                             continue
                         
                         # Check for exit commands
                         if any(word in command for word in ["goodbye", "bye", "exit", "quit"]):
-                            response = self.command_processor.process_command(command)
-                            self.speech_engine.speak(response)
+                            goodbye = self.jp_brain.personality.personalize_response(
+                                "standby", "Goodbye! Thanks for using JP Assistant. Have a great day!"
+                            )
+                            self.speech_engine.speak(goodbye)
                             self.shutdown()
                             break
                         
-                        # Process regular command
-                        response = self.command_processor.process_command(command)
+                        # Process with enhanced intelligence
+                        response = self.process_jp_command(command)
                         self.speech_engine.speak(response)
                     else:
                         self.speech_engine.speak("I didn't hear anything clearly. Try again or say 'Bye JP' to sleep.")
@@ -191,14 +236,23 @@ class JPAssistant:
                 self.speech_engine.speak("I encountered an error. Please try again.")
     
     def shutdown(self) -> None:
-        """Gracefully shutdown the assistant"""
-        print("\n🔄 Shutting down...")
+        """Gracefully shutdown the enhanced assistant"""
+        print("\n🔄 Shutting down enhanced systems...")
         self.running = False
+        self.awake = False
         
-        if self.speech_engine:
-            self.speech_engine.speak("Goodbye! Thanks for using JP Assistant. Have a great day!")
+        # Stop smart monitoring
+        if self.monitoring:
+            self.monitoring.stop_monitoring()
         
-        print(f"👋 {config.APP_NAME} stopped. Goodbye!")
+        # Save learning data
+        if self.jp_brain:
+            self.jp_brain.file_manager.save_json(
+                "jp_learning.json", 
+                self.jp_brain.learning_data
+            )
+        
+        print(f"👋 Enhanced {ASSISTANT_NAME} offline. All systems powered down.")
 
 def main():
     """Main entry point"""

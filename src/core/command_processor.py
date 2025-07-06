@@ -114,18 +114,36 @@ class CommandProcessor:
         elif any(word in command for word in ["cpu", "processor", "performance"]):
             return SystemManager.get_cpu_usage()
         
-        # File operations
-        elif any(word in command for word in ["files", "folder", "directory", "list"]):
-            if "mp3" in command:
-                return SystemManager.find_files_by_extension(".mp3")
-            elif "jpg" in command or "jpeg" in command:
-                return SystemManager.find_files_by_extension(".jpg")
-            elif "pdf" in command:
-                return SystemManager.find_files_by_extension(".pdf")
-            elif "txt" in command:
-                return SystemManager.find_files_by_extension(".txt")
+        # Enhanced file operations with system-wide search
+        elif any(word in command for word in ["files", "folder", "directory", "list", "find", "search files"]):
+            # Determine search scope
+            system_wide = "system" in command or "all" in command or "everywhere" in command
+            
+            if "mp3" in command or "music" in command:
+                return SystemManager.find_files_by_extension(".mp3", system_wide=system_wide)
+            elif "jpg" in command or "jpeg" in command or "image" in command or "photo" in command:
+                return SystemManager.find_files_by_extension(".jpg", system_wide=system_wide)
+            elif "png" in command:
+                return SystemManager.find_files_by_extension(".png", system_wide=system_wide)
+            elif "pdf" in command or "document" in command:
+                return SystemManager.find_files_by_extension(".pdf", system_wide=system_wide)
+            elif "txt" in command or "text" in command:
+                return SystemManager.find_files_by_extension(".txt", system_wide=system_wide)
+            elif "video" in command or "mp4" in command:
+                return SystemManager.find_files_by_extension(".mp4", system_wide=system_wide)
+            elif "excel" in command or "xlsx" in command:
+                return SystemManager.find_files_by_extension(".xlsx", system_wide=system_wide)
+            elif "word" in command or "docx" in command:
+                return SystemManager.find_files_by_extension(".docx", system_wide=system_wide)
+            elif "zip" in command or "archive" in command:
+                return SystemManager.find_files_by_extension(".zip", system_wide=system_wide)
             else:
-                return SystemManager.list_files()
+                # Check if user specified a filename to search for
+                search_terms = command.replace("find", "").replace("search", "").replace("files", "").replace("for", "").strip()
+                if search_terms and len(search_terms) > 2:
+                    return SystemManager.search_files_by_name(search_terms, system_wide=system_wide)
+                else:
+                    return SystemManager.list_files()
         
         # Program launching
         elif "open" in command:
