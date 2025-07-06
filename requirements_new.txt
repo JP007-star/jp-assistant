@@ -1,0 +1,17 @@
+# JP Assistant Requirements
+# Enhanced Voice-Activated AI Assistant
+
+# Core Dependencies
+speechrecognition>=3.10.0
+pyaudio>=0.2.11
+pyttsx3>=2.90
+psutil>=5.9.0
+numpy>=1.21.0
+
+# Optional Dependencies
+vosk>=0.3.45
+
+# Development Dependencies (uncomment for development)
+# pytest>=7.0.0
+# black>=22.0.0
+# flake8>=4.0.0
